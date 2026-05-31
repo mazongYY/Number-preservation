@@ -145,7 +145,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
         // ================= 国旗字典配置 =================
         const countryFlags = [
-            { prefix: "+1", flag: "🇺🇸" },   // 美国/加拿大通用
+            { prefix: "+1", flag: "🇺🇸/🇨🇦" },   // 美国/加拿大通用
             { prefix: "+44", flag: "🇬🇧" },  // 英国
             { prefix: "+86", flag: "🇨🇳" },  // 中国大陆
             { prefix: "+852", flag: "🇭🇰" }, // 香港
@@ -167,34 +167,68 @@ const HTML_CONTENT = `<!DOCTYPE html>
             { prefix: "+49", flag: "🇩🇪" },  // 德国
             { prefix: "+39", flag: "🇮🇹" },  // 意大利
             { prefix: "+34", flag: "🇪🇸" },  // 西班牙
-            { prefix: "+7", flag: "🇷🇺" },   // 俄罗斯/哈萨克斯坦
+            { prefix: "+7", flag: "🇷🇺/🇰🇿" },// 俄罗斯/哈萨克斯坦
             { prefix: "+380", flag: "🇺🇦" }, // 乌克兰
             { prefix: "+90", flag: "🇹🇷" },  // 土耳其
             { prefix: "+55", flag: "🇧🇷" },  // 巴西
             { prefix: "+52", flag: "🇲🇽" },  // 墨西哥
             { prefix: "+27", flag: "🇿🇦" },  // 南非
-            { prefix: "+234", flag: "🇳🇬" }  // 尼日利亚
+            { prefix: "+234", flag: "🇳🇬" }, // 尼日利亚
+            // ===== 新增更多国家 =====
+            { prefix: "+31", flag: "🇳🇱" },  // 荷兰
+            { prefix: "+32", flag: "🇧🇪" },  // 比利时
+            { prefix: "+41", flag: "🇨🇭" },  // 瑞士
+            { prefix: "+43", flag: "🇦🇹" },  // 奥地利
+            { prefix: "+46", flag: "🇸🇪" },  // 瑞典
+            { prefix: "+47", flag: "🇳🇴" },  // 挪威
+            { prefix: "+48", flag: "🇵🇱" },  // 波兰
+            { prefix: "+45", flag: "🇩🇰" },  // 丹麦
+            { prefix: "+358", flag: "🇫🇮" }, // 芬兰
+            { prefix: "+351", flag: "🇵🇹" }, // 葡萄牙
+            { prefix: "+30", flag: "🇬🇷" },  // 希腊
+            { prefix: "+353", flag: "🇮🇪" }, // 爱尔兰
+            { prefix: "+966", flag: "🇸🇦" }, // 沙特
+            { prefix: "+972", flag: "🇮🇱" }, // 以色列
+            { prefix: "+92", flag: "🇵🇰" },  // 巴基斯坦
+            { prefix: "+880", flag: "🇧🇩" }, // 孟加拉
+            { prefix: "+94", flag: "🇱🇰" },  // 斯里兰卡
+            { prefix: "+20", flag: "🇪🇬" },  // 埃及
+            { prefix: "+254", flag: "🇰🇪" }, // 肯尼亚
+            { prefix: "+54", flag: "🇦🇷" },  // 阿根廷
+            { prefix: "+56", flag: "🇨🇱" },  // 智利
+            { prefix: "+57", flag: "🇨🇴" },  // 哥伦比亚
+            { prefix: "+51", flag: "🇵🇪" },  // 秘鲁
+            { prefix: "+58", flag: "🇻🇪" },  // 委内瑞拉
+            { prefix: "+370", flag: "🇱🇹" }, // 立陶宛
+            { prefix: "+371", flag: "🇱🇻" }, // 拉脱维亚
+            { prefix: "+372", flag: "🇪🇪" }, // 爱沙尼亚
+            { prefix: "+995", flag: "🇬🇪" }, // 格鲁吉亚
+            { prefix: "+374", flag: "🇦🇲" }, // 亚美尼亚
+            { prefix: "+381", flag: "🇷🇸" }, // 塞尔维亚
+            { prefix: "+359", flag: "🇧🇬" }, // 保加利亚
+            { prefix: "+357", flag: "🇨🇾" }  // 塞浦路斯
         ];
 
-        // 智能国旗解析函数
+        // 智能国旗解析函数 (支持过滤各种特殊符号)
         function getCountryFlag(numberStr) {
-            if (!numberStr) return "📞"; // 无号码时显示电话图标
-            const cleanNumber = numberStr.replace(/\\s+/g, '');
-            if (!cleanNumber.startsWith("+")) return "🌍"; // 未带区号显示地球
+            if (!numberStr) return "📞"; 
+            // 过滤空格、括号、破折号和点，例如 +1 (234) 567-8900 变为 +12345678900
+            const cleanNumber = numberStr.replace(/[\\s\\-\\(\\)\\.]/g, '');
+            if (!cleanNumber.startsWith("+")) return "🌍"; 
             
-            // 按区号长度降序排列，确保先匹配 +852 而不是 +8
+            // 按区号长度降序排列，确保优先匹配长区号
             const sortedFlags = countryFlags.sort((a, b) => b.prefix.length - a.prefix.length);
             for (let item of sortedFlags) {
                 if (cleanNumber.startsWith(item.prefix)) {
                     return item.flag;
                 }
             }
-            return "🌍"; // 匹配不到返回地球
+            return "🌍"; 
         }
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
         
-        // 页面加载时，检查是否已有有效 token，如果有直接尝试获取数据
+        // 页面加载时，检查是否已有有效 token
         window.onload = () => {
             if (localStorage.getItem('esim_auth_token')) {
                 fetchEsimData();
@@ -262,10 +296,9 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // 保存持久化登录 Token
                     localStorage.setItem('esim_auth_token', data.token);
                     document.getElementById('authCode').value = '';
-                    fetchEsimData(); // 拉取数据并显示主界面
+                    fetchEsimData();
                 } else {
                     alert("登录失败: " + (data.message || "验证码错误或已过期"));
                     btn.disabled = false;
@@ -292,7 +325,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
             try {
                 const response = await fetch(WORKER_API_URL, { headers: getAuthHeaders() });
                 
-                // 拦截未授权或 Token 失效
                 if (response.status === 401) {
                     logout();
                     return;
@@ -302,7 +334,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 
                 esimData = await response.json();
                 
-                // 成功后切换界面
                 document.getElementById('login-container').classList.add('hidden');
                 document.getElementById('main-container').classList.remove('hidden');
                 
@@ -371,49 +402,52 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
                 let percent = Math.min(Math.max((diffDays / 365) * 100, 0), 100);
                 
-                // 动态获取国旗
                 const flagEmoji = getCountryFlag(sim.number);
 
                 const cardHTML = \`
                     <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                         
-                        <!-- 编辑按钮 (Hover时显示) -->
-                        <button onclick="openEditModal('\${sim.id}')" class="absolute top-4 right-24 text-green-500 hover:text-green-700 bg-green-50 hover:bg-green-100 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10" title="编辑卡片资料">
-                            <i class="fa-solid fa-pen text-sm"></i>
-                        </button>
+                        <!-- 操作按钮组 (移动端常显，PC端悬浮，彻底解决重叠) -->
+                        <div class="absolute top-4 right-4 flex gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 z-20 bg-white/80 p-1.5 rounded-full backdrop-blur-md border border-white/60 shadow-sm">
+                            <!-- 编辑按钮 -->
+                            <button onclick="openEditModal('\${sim.id}')" class="text-green-600 hover:text-white hover:bg-green-500 bg-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" title="编辑卡片资料">
+                                <i class="fa-solid fa-pen text-sm"></i>
+                            </button>
 
-                        <!-- 一键续期按钮 (Hover时显示) -->
-                        <button onclick="renewEsim('\${sim.id}', \${sim.cycle || 0})" class="absolute top-4 right-14 text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10" title="一键续期（按周期顺延）">
-                            <i class="fa-solid fa-rotate-right text-sm"></i>
-                        </button>
+                            <!-- 一键续期按钮 -->
+                            <button onclick="renewEsim('\${sim.id}', \${sim.cycle || 0})" class="text-blue-600 hover:text-white hover:bg-blue-500 bg-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" title="一键续期（按周期顺延）">
+                                <i class="fa-solid fa-rotate-right text-sm"></i>
+                            </button>
 
-                        <!-- 删除按钮 (Hover时显示) -->
-                        <button onclick="deleteEsim('\${sim.id}')" class="absolute top-4 right-4 text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10" title="删除号码">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
+                            <!-- 删除按钮 -->
+                            <button onclick="deleteEsim('\${sim.id}')" class="text-red-500 hover:text-white hover:bg-red-500 bg-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" title="删除号码">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
 
-                        <div class="flex justify-between items-start mb-4 pr-24">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-900 truncate max-w-[140px] md:max-w-[160px]">\${sim.name}</h2>
-                                <p class="text-gray-600 font-mono mt-1 text-sm flex items-center gap-1">
-                                    <span class="text-lg">\${flagEmoji}</span>
-                                    <span>\${sim.number || '未登记号码'}</span>
-                                </p>
+                        <!-- 头部信息重构：状态标签紧贴标题，防止和右侧按钮重叠 -->
+                        <div class="mb-6 pr-28 lg:pr-0">
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <h2 class="text-xl font-bold text-gray-900 truncate max-w-[120px] md:max-w-[160px]">\${sim.name}</h2>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm whitespace-nowrap \${badgeClass}">
+                                    <i class="fa-solid \${icon} mr-1"></i>\${statusText}
+                                </span>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap \${badgeClass} absolute right-6 top-16 md:static md:right-auto md:top-auto">
-                                <i class="fa-solid \${icon} mr-1"></i>\${statusText}
-                            </span>
+                            <p class="text-gray-600 font-mono text-sm flex items-center gap-1.5">
+                                <span class="text-lg">\${flagEmoji}</span>
+                                <span>\${sim.number || '未登记号码'}</span>
+                            </p>
                         </div>
                         
-                        <div class="mt-8 md:mt-6">
+                        <div class="mt-4">
                             <div class="flex justify-between text-sm font-semibold mb-2">
                                 <span class="text-gray-700">剩余时间</span>
                                 <span class="text-gray-900 font-bold \${diffDays <= 15 && diffDays > 0 ? 'text-red-600 animate-pulse' : ''}">\${diffDays < 0 ? '0' : diffDays} 天</span>
                             </div>
-                            <div class="w-full bg-gray-200/60 rounded-full h-3 mb-2 shadow-inner">
+                            <div class="w-full bg-gray-200/60 rounded-full h-3 mb-3 shadow-inner">
                                 <div class="\${statusColor} h-3 rounded-full shadow-sm transition-all duration-1000" style="width: \${percent}%"></div>
                             </div>
-                            <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                            <div class="flex justify-between text-xs text-gray-500 font-medium">
                                 <span><i class="fa-solid fa-arrows-rotate mr-1"></i>周期: \${sim.cycle || '-'} 天</span>
                                 <span>到期日: \${sim.expireDate}</span>
                             </div>
@@ -462,14 +496,13 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 expireDate: document.getElementById('simExpire').value
             };
 
-            // 如果有 editingId，说明是编辑操作，采用 PUT 方法
             if (editingId) {
                 payload.id = editingId;
             }
 
             try {
                 const response = await fetch(WORKER_API_URL, {
-                    method: editingId ? 'PUT' : 'POST', // 动态决定方法
+                    method: editingId ? 'PUT' : 'POST', 
                     headers: getAuthHeaders(),
                     body: JSON.stringify(payload)
                 });
@@ -508,7 +541,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 const response = await fetch(WORKER_API_URL, {
                     method: 'PUT',
                     headers: getAuthHeaders(),
-                    // 仅传需要更新的字段，后端会自动合并
                     body: JSON.stringify({ id: id, expireDate: newExpireStr })
                 });
                 
@@ -547,7 +579,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
         // 打开新增弹窗
         function openModal() {
-            editingId = null; // 清空编辑状态
+            editingId = null;
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-file-circle-plus text-blue-600"></i> 新增 eSIM';
             const modal = document.getElementById('addModal');
             const content = document.getElementById('modalContent');
@@ -565,10 +597,9 @@ const HTML_CONTENT = `<!DOCTYPE html>
             const sim = esimData.find(s => s.id === id);
             if (!sim) return;
             
-            editingId = id; // 标记正在编辑
+            editingId = id;
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-green-600"></i> 编辑 eSIM';
             
-            // 自动填入当前数据
             document.getElementById('simName').value = sim.name || '';
             document.getElementById('simNumber').value = sim.number || '';
             document.getElementById('simCycle').value = sim.cycle || '';
@@ -594,7 +625,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             
             setTimeout(() => {
                 modal.classList.add('hidden');
-                editingId = null; // 恢复状态
+                editingId = null;
             }, 300); 
         }
     </script>
@@ -763,7 +794,6 @@ export default {
           esims = esims.map(sim => {
             if (sim.id === id) { 
                 found = true; 
-                // 仅更新传入的有值的字段，确保一键续期和全量编辑复用同一个接口
                 if (expireDate !== undefined) sim.expireDate = expireDate;
                 if (name !== undefined) sim.name = name;
                 if (number !== undefined) sim.number = number;
